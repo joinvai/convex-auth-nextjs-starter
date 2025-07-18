@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useConvexAuth } from "@convex-dev/auth/react";
+import { useSessionInfo } from "@/components/auth/session-manager";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function AuthCallbackPage() {
-  const { isLoading, isAuthenticated } = useConvexAuth();
+  const { isLoading, isAuthenticated } = useSessionInfo();
   const router = useRouter();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 

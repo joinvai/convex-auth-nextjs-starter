@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useConvexAuth, useAuthActions } from "@convex-dev/auth/react";
+import { useAuthActions } from "@convex-dev/auth/react";
+import { useSessionInfo } from "./session-manager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export function MagicLinkTest() {
-  const { isLoading, isAuthenticated } = useConvexAuth();
+  const { isLoading, isAuthenticated } = useSessionInfo();
   const { signOut } = useAuthActions();
-  const [testEmail, setTestEmail] = useState("test@example.com");
 
   const handleSignOut = async () => {
     try {
@@ -67,10 +66,10 @@ export function MagicLinkTest() {
             <p>Use the sign-in form above to test the magic link flow:</p>
             <ol className="list-decimal list-inside space-y-1 mt-2 text-xs">
               <li>Enter your email address</li>
-              <li>Click "Send sign-in link"</li>
+              <li>Click &quot;Send sign-in link&quot;</li>
               <li>Check your email for the magic link</li>
               <li>Click the link to authenticate</li>
-              <li>You'll be redirected back here as authenticated</li>
+              <li>You&apos;ll be redirected back here as authenticated</li>
             </ol>
           </div>
         )}

@@ -1,8 +1,8 @@
 "use client";
 
-import { useConvexAuth } from "@convex-dev/auth/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SignInForm } from "./sign-in-form";
+import { useSessionInfo } from "./session-manager";
 
 interface AuthenticationWrapperProps {
   children: React.ReactNode;
@@ -15,7 +15,7 @@ export function AuthenticationWrapper({
   fallback,
   loadingFallback 
 }: AuthenticationWrapperProps) {
-  const { isLoading, isAuthenticated } = useConvexAuth();
+  const { isLoading, isAuthenticated } = useSessionInfo();
 
   // Show loading state while authentication status is being determined
   if (isLoading) {

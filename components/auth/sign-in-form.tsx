@@ -97,7 +97,7 @@ export function SignInForm({ onSubmit, isLoading: externalLoading, error: extern
         <CardHeader>
           <CardTitle>Check your email</CardTitle>
           <CardDescription>
-            We've sent a magic link to <strong>{form.getValues("email")}</strong>. 
+            We&apos;ve sent a magic link to <strong>{form.getValues("email")}</strong>. 
             Click the link to sign in to your account.
           </CardDescription>
         </CardHeader>
@@ -109,8 +109,8 @@ export function SignInForm({ onSubmit, isLoading: externalLoading, error: extern
             </div>
             <ul className="space-y-1 text-xs">
               <li>• Check your email inbox (and spam folder)</li>
-              <li>• Click the "Sign In" button in the email</li>
-              <li>• You'll be automatically signed in</li>
+              <li>• Click the &quot;Sign In&quot; button in the email</li>
+              <li>• You&apos;ll be automatically signed in</li>
               <li>• The link expires in 15 minutes</li>
             </ul>
           </div>
@@ -148,7 +148,7 @@ export function SignInForm({ onSubmit, isLoading: externalLoading, error: extern
       <CardHeader>
         <CardTitle>Sign in to ShipOrSkip</CardTitle>
         <CardDescription>
-          Enter your email address and we'll send you a magic link to sign in.
+          Enter your email address and we&apos;ll send you a magic link to sign in.
         </CardDescription>
       </CardHeader>
       <CardContent>
