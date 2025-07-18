@@ -31,7 +31,7 @@ export function SignInForm({ onSubmit, isLoading: externalLoading, error: extern
   const [success, setSuccess] = useState(false);
   const [lastEmailSent, setLastEmailSent] = useState<string | null>(null);
   const { signIn } = useAuthActions();
-  
+
   const { executeWithRetry, isRetrying, retryCount, RateLimitError } = useAuthErrorHandler({
     showToast: false, // We'll handle UI feedback ourselves
     context: "sign-in-form",
@@ -54,7 +54,7 @@ export function SignInForm({ onSubmit, isLoading: externalLoading, error: extern
       setError(null);
       setSuccess(false);
 
-      // Check if we're sending to the same email too frequently
+      // Check if we're sending to the same email too frequently (client-side check)
       if (lastEmailSent === data.email && retryCount >= 2) {
         throw new RateLimitError("Too many attempts for this email. Please wait a few minutes before trying again.");
       }
@@ -64,11 +64,54 @@ export function SignInForm({ onSubmit, isLoading: externalLoading, error: extern
         onSubmit(data.email);
       }
 
-      // Execute sign-in with retry logic
+      // Execute sign-in with retry logic and enhanced error handling
       await executeWithRetry(async () => {
-        await signIn("resend", { email: data.email });
+        try {
+          await signIn("resend", { email: data.email });
+        } catch (signInError) {
+          // Enhanced error handling for rate limiting and other auth errors
+          if (signInError instanceof Error) {
+            const errorMessage = signInError.message.toLowerCase();
+
+            // Check for rate limiting errors from the backend
+            if (errorMessage.includes('rate_limit_exceeded') ||
+              errorMessage.includes('too many requests') ||
+              errorMessage.includes('rate limit')) {
+              throw new RateLimitError(
+                "You've requested too many magic links recently. Please wait a few minutes before trying again."
+              );
+            }
+
+            // Check for email validation errors
+            if (errorMessage.includes('email_validation_error') ||
+              errorMessage.includes('invalid email')) {
+              throw new Error("Please enter a valid email address.");
+            }
+
+            // Check for configuration errors
+            if (errorMessage.includes('configuration_error') ||
+              errorMessage.includes('email service configuration')) {
+              throw new Error("Email service is temporarily unavailable. Please try again later or contact support.");
+            }
+
+            // Check for network errors
+            if (errorMessage.includes('network_error') ||
+              errorMessage.includes('connection')) {
+              throw new Error("Network connection error. Please check your internet connection and try again.");
+            }
+
+            // Check for email service errors
+            if (errorMessage.includes('email_service_error') ||
+              errorMessage.includes('service unavailable')) {
+              throw new Error("Email service is temporarily unavailable. Please try again in a few minutes.");
+            }
+          }
+
+          // Re-throw the original error if we don't have a specific handler
+          throw signInError;
+        }
       }, "magic-link-send");
-      
+
       // Track successful email send
       setLastEmailSent(data.email);
       setSuccess(true);
@@ -89,7 +132,7 @@ export function SignInForm({ onSubmit, isLoading: externalLoading, error: extern
         <CardHeader>
           <CardTitle>Check your email</CardTitle>
           <CardDescription>
-            We&apos;ve sent a magic link to <strong>{form.getValues("email")}</strong>. 
+            We&apos;ve sent a magic link to <strong>{form.getValues("email")}</strong>.
             Click the link to sign in to your account.
           </CardDescription>
         </CardHeader>
@@ -106,7 +149,7 @@ export function SignInForm({ onSubmit, isLoading: externalLoading, error: extern
               <li>• The link expires in 15 minutes</li>
             </ul>
           </div>
-          
+
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -164,7 +207,7 @@ export function SignInForm({ onSubmit, isLoading: externalLoading, error: extern
                 </FormItem>
               )}
             />
-            
+
             {currentError && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />

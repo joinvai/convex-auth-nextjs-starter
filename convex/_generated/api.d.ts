@@ -15,7 +15,10 @@ import type {
 } from "convex/server";
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
+import type * as rateLimiting from "../rateLimiting.js";
+import type * as securityAudit from "../securityAudit.js";
 import type * as test from "../test.js";
+import type * as tokenSecurity from "../tokenSecurity.js";
 import type * as users from "../users.js";
 
 /**
@@ -29,7 +32,10 @@ import type * as users from "../users.js";
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   http: typeof http;
+  rateLimiting: typeof rateLimiting;
+  securityAudit: typeof securityAudit;
   test: typeof test;
+  tokenSecurity: typeof tokenSecurity;
   users: typeof users;
 }>;
 export declare const api: FilterApi<
