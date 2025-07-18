@@ -12,12 +12,21 @@ export const getUserByEmail = query({
     },
 });
 
-// Query to get current user (will be used with authentication context)
+// Query to get current user (authenticated user)
 export const getCurrentUser = query({
     args: {},
     handler: async (ctx) => {
-        // This will be enhanced with authentication context in later tasks
-        // For now, it's a placeholder for the user data retrieval pattern
-        return null;
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) {
+            return null;
+        }
+
+        // Get user from database using the identity
+        const user = await ctx.db
+            .query("users")
+            .withIndex("tokenIdentifier", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .first();
+
+        return user;
     },
 });

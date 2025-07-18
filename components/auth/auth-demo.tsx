@@ -3,6 +3,7 @@
 import { useConvexAuth } from "@convex-dev/auth/react";
 import { AuthenticationWrapper } from "./authentication-wrapper";
 import { SignOutButton } from "./sign-out-button";
+import { MagicLinkTest } from "./magic-link-test";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function AuthDemo() {
@@ -52,6 +53,9 @@ export function AuthDemo() {
           </CardContent>
         </Card>
       </AuthenticationWrapper>
+
+      {/* Magic Link Test Component */}
+      <MagicLinkTest />
 
       {/* Status indicator outside the wrapper */}
       <div className="text-center text-sm text-muted-foreground">

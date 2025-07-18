@@ -23,9 +23,15 @@ export function AuthenticationWrapper({
       return <>{loadingFallback}</>;
     }
     
-    // Default loading state
+    // Enhanced loading state with better messaging for magic link flow
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="text-center space-y-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-sm text-muted-foreground">
+            Checking authentication status...
+          </p>
+        </div>
         <div className="space-y-2 w-full max-w-md">
           <Skeleton className="h-4 w-3/4" />
           <Skeleton className="h-4 w-1/2" />
