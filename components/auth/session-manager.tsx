@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
+import { useAuthErrorHandler, SessionExpiredError } from "./error-handler";
 
 interface SessionManagerProps {
   children: React.ReactNode;
@@ -21,15 +22,29 @@ export function SessionManager({
   const [sessionWarningShown, setSessionWarningShown] = useState(false);
   const [lastSessionCheck, setLastSessionCheck] = useState<number>(Date.now());
 
+  const { handleError } = useAuthErrorHandler({
+    context: "session-manager",
+    showToast: false, // We'll handle session-specific toasts
+    retryConfig: {
+      maxRetries: 2,
+      baseDelay: 5000, // Longer delay for session checks
+    }
+  });
+
   const isAuthenticated = userSession?.isAuthenticated ?? false;
   const isLoading = userSession === undefined;
 
-  // Handle session expiration
+  // Handle session expiration with enhanced error handling
   const handleSessionExpired = useCallback(() => {
     if (!sessionWarningShown) {
       setSessionWarningShown(true);
+      
+      // Create a proper session expired error
+      const sessionError = new SessionExpiredError();
+      handleError(sessionError, "session-expiration");
+      
       toast.error("Your session has expired. Please sign in again.", {
-        duration: 5000,
+        duration: 8000,
         action: {
           label: "Refresh",
           onClick: () => window.location.reload(),
@@ -40,7 +55,7 @@ export function SessionManager({
         onSessionExpired();
       }
     }
-  }, [sessionWarningShown, onSessionExpired]);
+  }, [sessionWarningShown, onSessionExpired, handleError]);
 
   // Monitor session status
   useEffect(() => {

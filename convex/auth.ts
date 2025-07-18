@@ -99,17 +99,41 @@ ShipOrSkip Team`,
 
                     // Enhanced error handling for different failure scenarios
                     if (error && typeof error === 'object' && 'message' in error) {
-                        const errorMessage = (error as Error).message;
+                        const errorMessage = (error as Error).message.toLowerCase();
+
+                        // Rate limiting errors
                         if (errorMessage.includes('rate limit') || errorMessage.includes('too many requests')) {
-                            throw new Error('Rate limit exceeded. Please wait a moment before requesting another link.');
-                        } else if (errorMessage.includes('invalid') && errorMessage.includes('email')) {
-                            throw new Error('Invalid email address. Please check your email and try again.');
-                        } else if (errorMessage.includes('api key') || errorMessage.includes('unauthorized')) {
-                            throw new Error('Email service configuration error. Please contact support.');
+                            throw new Error('RATE_LIMIT_ERROR: Rate limit exceeded. Please wait a moment before requesting another link.');
+                        }
+
+                        // Email validation errors
+                        if (errorMessage.includes('invalid') && errorMessage.includes('email')) {
+                            throw new Error('EMAIL_VALIDATION_ERROR: Invalid email address. Please check your email and try again.');
+                        }
+
+                        // Authentication/API key errors
+                        if (errorMessage.includes('api key') || errorMessage.includes('unauthorized') || errorMessage.includes('forbidden')) {
+                            throw new Error('CONFIGURATION_ERROR: Email service configuration error. Please contact support.');
+                        }
+
+                        // Network/connection errors
+                        if (errorMessage.includes('network') || errorMessage.includes('connection') || errorMessage.includes('timeout')) {
+                            throw new Error('NETWORK_ERROR: Network connection error. Please check your connection and try again.');
+                        }
+
+                        // Service unavailable errors
+                        if (errorMessage.includes('service unavailable') || errorMessage.includes('server error') || errorMessage.includes('503') || errorMessage.includes('502')) {
+                            throw new Error('EMAIL_SERVICE_ERROR: Email service is temporarily unavailable. Please try again in a few minutes.');
+                        }
+
+                        // Quota/billing errors
+                        if (errorMessage.includes('quota') || errorMessage.includes('billing') || errorMessage.includes('payment')) {
+                            throw new Error('CONFIGURATION_ERROR: Email service quota exceeded. Please contact support.');
                         }
                     }
 
-                    throw new Error('Failed to send magic link. Please try again in a moment.');
+                    // Generic fallback error
+                    throw new Error('EMAIL_SERVICE_ERROR: Failed to send magic link. Please try again in a moment.');
                 }
             },
         }),

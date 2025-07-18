@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useAuthErrorHandler, getUserFriendlyErrorMessage } from "./error-handler";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle, Loader2 } from "lucide-react";
 
 const signInSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -27,8 +30,16 @@ export function SignInForm({ onSubmit, isLoading: externalLoading, error: extern
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [lastEmailSent, setLastEmailSent] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
   const { signIn } = useAuthActions();
+  
+  const { executeWithRetry, isRetrying, retryCount, RateLimitError } = useAuthErrorHandler({
+    showToast: false, // We'll handle UI feedback ourselves
+    context: "sign-in-form",
+    retryConfig: {
+      maxRetries: 2, // Limit retries for email sending
+      baseDelay: 2000,
+    }
+  });
 
   const form = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
@@ -44,9 +55,8 @@ export function SignInForm({ onSubmit, isLoading: externalLoading, error: extern
       setSuccess(false);
 
       // Check if we're sending to the same email too frequently
-      if (lastEmailSent === data.email && retryCount >= 3) {
-        setError("Too many attempts. Please wait a few minutes before trying again.");
-        return;
+      if (lastEmailSent === data.email && retryCount >= 2) {
+        throw new RateLimitError("Too many attempts for this email. Please wait a few minutes before trying again.");
       }
 
       // Call external onSubmit if provided
@@ -54,35 +64,17 @@ export function SignInForm({ onSubmit, isLoading: externalLoading, error: extern
         onSubmit(data.email);
       }
 
-      // Sign in with Convex Auth using Resend provider
-      await signIn("resend", { email: data.email });
+      // Execute sign-in with retry logic
+      await executeWithRetry(async () => {
+        await signIn("resend", { email: data.email });
+      }, "magic-link-send");
       
       // Track successful email send
       setLastEmailSent(data.email);
-      setRetryCount(lastEmailSent === data.email ? retryCount + 1 : 1);
       setSuccess(true);
     } catch (err) {
-      console.error("Sign-in error:", err);
-      
-      // Enhanced error handling with specific messages
-      let errorMessage = "Failed to send sign-in link. Please try again.";
-      
-      if (err instanceof Error) {
-        const message = err.message.toLowerCase();
-        if (message.includes("rate limit") || message.includes("too many requests")) {
-          errorMessage = "Too many requests. Please wait a moment before trying again.";
-        } else if (message.includes("invalid email") || message.includes("email")) {
-          errorMessage = "Please check your email address and try again.";
-        } else if (message.includes("network") || message.includes("connection")) {
-          errorMessage = "Network error. Please check your connection and try again.";
-        } else if (message.includes("server") || message.includes("service")) {
-          errorMessage = "Service temporarily unavailable. Please try again in a few minutes.";
-        } else {
-          errorMessage = err.message;
-        }
-      }
-      
-      setError(errorMessage);
+      const friendlyMessage = getUserFriendlyErrorMessage(err);
+      setError(friendlyMessage);
     } finally {
       setIsLoading(false);
     }
@@ -174,17 +166,36 @@ export function SignInForm({ onSubmit, isLoading: externalLoading, error: extern
             />
             
             {currentError && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
-                {currentError}
-              </div>
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  {currentError}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {isRetrying && retryCount > 0 && (
+              <Alert>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <AlertDescription>
+                  Retrying... (Attempt {retryCount + 1})
+                </AlertDescription>
+              </Alert>
             )}
 
             <Button
               type="submit"
-              disabled={currentLoading}
+              disabled={currentLoading || isRetrying}
               className="w-full"
             >
-              {currentLoading ? "Sending link..." : "Send sign-in link"}
+              {currentLoading || isRetrying ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {isRetrying ? "Retrying..." : "Sending link..."}
+                </>
+              ) : (
+                "Send sign-in link"
+              )}
             </Button>
           </form>
         </Form>

@@ -3,6 +3,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { SignInForm } from "./sign-in-form";
 import { useSessionInfo } from "./session-manager";
+import { AuthErrorBoundary } from "./auth-error-boundary";
 
 interface AuthenticationWrapperProps {
   children: React.ReactNode;
@@ -11,6 +12,23 @@ interface AuthenticationWrapperProps {
 }
 
 export function AuthenticationWrapper({ 
+  children, 
+  fallback,
+  loadingFallback 
+}: AuthenticationWrapperProps) {
+  return (
+    <AuthErrorBoundary>
+      <AuthenticationWrapperContent 
+        fallback={fallback}
+        loadingFallback={loadingFallback}
+      >
+        {children}
+      </AuthenticationWrapperContent>
+    </AuthErrorBoundary>
+  );
+}
+
+function AuthenticationWrapperContent({ 
   children, 
   fallback,
   loadingFallback 
@@ -54,7 +72,9 @@ export function AuthenticationWrapper({
   // Default fallback is the sign-in form
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px]">
-      <SignInForm />
+      <AuthErrorBoundary>
+        <SignInForm />
+      </AuthErrorBoundary>
     </div>
   );
 }

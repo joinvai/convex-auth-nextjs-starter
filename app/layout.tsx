@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/convex-client-provider";
 import { Navigation } from "@/components/auth/navigation";
+import { AuthErrorBoundary } from "@/components/auth/auth-error-boundary";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -31,8 +32,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ConvexClientProvider>
-          <Navigation />
-          <main>{children}</main>
+          <AuthErrorBoundary>
+            <Navigation />
+            <main>{children}</main>
+          </AuthErrorBoundary>
         </ConvexClientProvider>
         <Toaster position="top-right" richColors />
       </body>
