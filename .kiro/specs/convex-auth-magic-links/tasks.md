@@ -12,19 +12,19 @@
   - Set up proper database indexes for user lookups
   - _Requirements: 6.3, 3.2_
 
-- [ ] 3. Install and configure Convex Auth with magic links
+- [x] 3. Install and configure Convex Auth with magic links
   - Install Convex Auth and Auth Core dependencies
   - Configure Convex Auth with Resend email provider
   - Set up authentication HTTP routes and callbacks
   - _Requirements: 3.1, 7.3_
 
-- [ ] 4. Set up email service integration
+- [x] 4. Set up email service integration
   - Configure Resend API key and environment variables
   - Implement custom email provider for magic links
   - Test email sending functionality
   - _Requirements: 7.1, 7.2, 5.1, 5.2, 5.3_
 
-- [ ] 5. Create Convex client provider for Next.js
+- [x] 5. Create Convex client provider for Next.js
   - Implement ConvexClientProvider component
   - Integrate provider with Next.js app layout
   - Configure client-side authentication context
